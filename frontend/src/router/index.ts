@@ -1,16 +1,37 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { auth } from '../../firebaseconfig'
+import Login from '../views/Login.vue'
+import Signup from '../views/Signup.vue'
+import Home from '../views/Home.vue'
+
+const routes = [
+  {
+    path: '/',
+    component: Home,
+    meta: { requiresAuth: true } // Protected route
+  },
+  {
+    path: '/login',
+    component: Login
+  },
+  {
+    path: '/signup',
+    component: Signup
+  }
+]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView
-    },
-    
-  ]
+  history: createWebHistory(),
+  routes
+})
+
+router.beforeEach((to, from, next) => {
+  const currentUser = auth.currentUser
+  if (to.meta.requiresAuth && !currentUser) {
+    next('/login') // Redirect to login page if not authenticated
+  } else {
+    next()
+  }
 })
 
 export default router

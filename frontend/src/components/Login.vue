@@ -1,26 +1,47 @@
-<!-- <script setup lang="ts">
+<script setup lang="ts">
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
 import FloatLabel from 'primevue/floatlabel'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import { useRouter } from 'vue-router'
 import Checkbox from 'primevue/checkbox'
 import Panel from 'primevue/panel'
 import { ref } from 'vue'
+import { auth } from '../../firebaseconfig'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 
-const username = ref('')
+const router = useRouter()
+const email = ref('')
 const password = ref('')
+const goToSignup = () => {
+  router.push('/signup')
+}
+
+const handleSignin = async () => {
+  console.log(email.value, password.value)
+  signInWithEmailAndPassword(auth, email.value, password.value)
+    .then((userCredential: { user: any }) => {
+      const user = userCredential.user
+      console.log('User signed up:', user)
+      router.push('/')
+    })
+    .catch((error: { code: any; message: any }) => {
+      const errorCode = error.code
+      const errorMessage = error.message
+    })
+}
 </script>
 
 <template>
-  <div class="flex flex-column row-gap-5">
+  <div class="container flex flex-column row-gap-4">
     <InputGroup>
       <InputGroupAddon>
         <i class="pi pi-user"></i>
       </InputGroupAddon>
       <FloatLabel>
-        <InputText id="username" v-model="username" />
-        <label for="username">Username</label>
+        <InputText id="email" v-model="email" />
+        <label for="email">Email</label>
       </FloatLabel>
     </InputGroup>
     <InputGroup>
@@ -34,19 +55,20 @@ const password = ref('')
     </InputGroup>
     <Button v-slot="slotProps" asChild>
       <button
+        @click="handleSignin"
         v-bind="slotProps.a11yAttrs"
         class="rounded-lg bg-gradient-to-br from-primary-400 to-primary-700 active:from-primary-700 active:to-primary-900 text-white border-none px-6 py-3 font-bold hover:ring-2 cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 ring-primary transition-all"
       >
-        SIGN UP
+        Log In
       </button>
     </Button>
     <div class="flex justify-between items-center mt-4">
       <Button class="text-blue-500" @click="goToSignup"> Don't have an account? Sign Up </Button>
     </div>
   </div>
-</template> -->
+</template>
 
-<script setup lang>
+<!-- <script setup lang>
 import Card from 'primevue/card'
 import Password from 'primevue/password'
 import InputText from 'primevue/inputtext'
@@ -63,7 +85,7 @@ const errorMsg = ref(null)
 <template>
   <div class="w-full h-screen flex flex-col justify-center items-center p-4 overflow-auto dark:">
     <div class="w-full max-w-[450px] px-4 overflow-auto">
-      <!-- <div class="flex flex-col gap-5 items-center w-[400px] max-w-md"> -->
+      <div class="flex flex-col gap-5 items-center w-[400px] max-w-md">
       <Card class="w-full border border-surface-border bg-primary-inverse dark:bg-surface-800">
         <template #header>
           <div class="flex justify-center items-center p-4">
@@ -110,5 +132,4 @@ const errorMsg = ref(null)
       </Card>
     </div>
   </div>
-  <!-- </div> -->
-</template>
+</template> -->
