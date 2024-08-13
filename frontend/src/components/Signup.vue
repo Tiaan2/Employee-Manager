@@ -5,11 +5,9 @@ import FloatLabel from 'primevue/floatlabel'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import { useRouter } from 'vue-router'
-import Message from 'primevue/message'
 import { ref } from 'vue'
 import { auth } from '../../firebaseconfig'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { isEmailValid, isPasswordValid } from './validators'
+import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword } from 'firebase/auth'
 
 const router = useRouter()
 const goToSignup = () => {
@@ -79,6 +77,19 @@ const handleSignup = async () => {
     }
   }
 }
+const signInGoogle = async () => {
+  const provider = new GoogleAuthProvider()
+  signInWithPopup(auth, provider).
+    .then((result) => {
+      // const credential = GoogleAuthProvider.credentialFromResult(result)
+      // const token = credential.accessToken
+      // const user = result.user
+      router.push('/')
+    })
+    .catch((error) => {
+      console.log('Google Sign In error:', error)
+    })
+}
 </script>
 
 <template>
@@ -118,6 +129,9 @@ const handleSignup = async () => {
     </Button>
     <div class="flex justify-between items-center mt-4">
       <Button class="text-blue-500" @click="goToSignup"> Already have an account? Log In </Button>
+    </div>
+    <div class="flex justify-between items-center mt-4">
+      <Button class="text-blue-500" @click="signInGoogle">Google Sign In</Button>
     </div>
   </div>
 </template>

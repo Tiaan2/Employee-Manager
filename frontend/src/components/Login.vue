@@ -9,7 +9,7 @@ import Checkbox from 'primevue/checkbox'
 import Panel from 'primevue/panel'
 import { ref } from 'vue'
 import { auth } from '../../firebaseconfig'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from 'firebase/auth'
 
 const router = useRouter()
 const email = ref('')
@@ -29,6 +29,20 @@ const handleSignin = async () => {
     .catch((error: { code: any; message: any }) => {
       const errorCode = error.code
       const errorMessage = error.message
+    })
+}
+
+const signInGoogle = async () => {
+  const provider = new GoogleAuthProvider()
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      // const credential = GoogleAuthProvider.credentialFromResult(result)
+      // const token = credential.accessToken
+      // const user = result.user
+      router.push('/')
+    })
+    .catch((error) => {
+      console.log('Google Sign In error:', error)
     })
 }
 </script>
@@ -64,6 +78,9 @@ const handleSignin = async () => {
     </Button>
     <div class="flex justify-between items-center mt-4">
       <Button class="text-blue-500" @click="goToSignup"> Don't have an account? Sign Up </Button>
+    </div>
+    <div class="flex justify-between items-center mt-4">
+      <Button class="text-blue-500" @click="signInGoogle">Google Sign In</Button>
     </div>
   </div>
 </template>
