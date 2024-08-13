@@ -12,24 +12,41 @@ import { auth } from '../../firebaseconfig'
 import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from 'firebase/auth'
 
 const router = useRouter()
-const email = ref('')
-const password = ref('')
 const goToSignup = () => {
   router.push('/signup')
 }
+const email = ref('')
+const password = ref('')
+const emailError = ref('')
+const passwordError = ref('')
 
 const handleSignin = async () => {
-  console.log(email.value, password.value)
-  signInWithEmailAndPassword(auth, email.value, password.value)
-    .then((userCredential: { user: any }) => {
-      const user = userCredential.user
-      console.log('User signed up:', user)
-      router.push('/')
-    })
-    .catch((error: { code: any; message: any }) => {
-      const errorCode = error.code
-      const errorMessage = error.message
-    })
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
+    const user = userCredential.user
+    console.log('User signed up:', user)
+    router.push('/')
+  } catch (error) {
+    if (error instanceof Error) {
+      const errorCode = (error as any).code
+      const errorMessage = (error as any).message
+
+      switch (errorCode) {
+        case 'auth/invalid-email':
+          emailError.value = 'Invalid email address. Please enter a valid email.'
+          break
+        case 'auth/missing-password':
+          passwordError.value = 'Please enter your password.'
+          break
+        case 'auth/invalid-credential':
+          passwordError.value = 'Incorrect Login Credentials'
+          break
+        default:
+          console.error('Signup error:', errorMessage)
+          break
+      }
+    }
+  }
 }
 
 const signInGoogle = async () => {
@@ -57,6 +74,7 @@ const signInGoogle = async () => {
         <InputText id="email" v-model="email" />
         <label for="email">Email</label>
       </FloatLabel>
+      <small v-if="emailError" class="text-red-500">{{ emailError }}</small>
     </InputGroup>
     <InputGroup>
       <InputGroupAddon>
@@ -66,6 +84,7 @@ const signInGoogle = async () => {
         <InputText type="password" id="password" v-model="password" />
         <label for="username">Password</label>
       </FloatLabel>
+      <small v-if="passwordError" class="text-red-500">{{ passwordError }}</small>
     </InputGroup>
     <Button v-slot="slotProps" asChild>
       <button
@@ -77,76 +96,9 @@ const signInGoogle = async () => {
       </button>
     </Button>
     <div class="flex justify-between items-center mt-4">
-      <Button class="text-blue-500" @click="goToSignup"> Don't have an account? Sign Up </Button>
-    </div>
-    <div class="flex justify-between items-center mt-4">
       <Button class="text-blue-500" @click="signInGoogle">Google Sign In</Button>
     </div>
+
+    <a class="cursor-pointer" @click="goToSignup"> Don't have an account? Sign Up </a>
   </div>
 </template>
-
-<!-- <script setup lang>
-import Card from 'primevue/card'
-import Password from 'primevue/password'
-import InputText from 'primevue/inputtext'
-import Button from 'primevue/button'
-import { ref } from 'vue'
-import { useVuelidate } from '@vuelidate/core'
-import { required, email } from '@vuelidate/validators'
-
-const userEmail = ref('')
-const password = ref(null)
-const errorMsg = ref(null)
-</script>
-
-<template>
-  <div class="w-full h-screen flex flex-col justify-center items-center p-4 overflow-auto dark:">
-    <div class="w-full max-w-[450px] px-4 overflow-auto">
-      <div class="flex flex-col gap-5 items-center w-[400px] max-w-md">
-      <Card class="w-full border border-surface-border bg-primary-inverse dark:bg-surface-800">
-        <template #header>
-          <div class="flex justify-center items-center p-4">
-            <img src="" alt="Logo" class="w-[100px] h-[100px] self-center" />
-          </div>
-        </template>
-        <template #title>
-          <h1 class="font-medium">Log in</h1>
-        </template>
-        <template #content>
-          <div class="flex flex-col gap-3">
-            <div class="flex flex-col gap-2 items-start">
-              <h3 class="font-semibold">Email Address</h3>
-              <InputText
-                id="email"
-                type="email"
-                class="w-full"
-                v-model="userEmail"
-                placeholder="email@example.com"
-              />
-            </div>
-            <div class="flex flex-col gap-2 items-start">
-              <h3 class="font-semibold">Password</h3>
-              <div class="flex justify-center w-full">
-                <Password v-model="password" toggleMask class="w-full" :feedback="false">
-                  <template #header>
-                    <h6 class="font-medium m-0 mb-2 text-base">Enter your password</h6>
-                  </template>
-                </Password>
-              </div>
-            </div>
-            <small v-if="errorMsg" class="text-red-500">{{ errorMsg }}</small>
-            <Button class="w-full" label="Login" @click="signIn" />
-            <Divider align="center">
-              <b class="bg-none">or</b>
-            </Divider>
-            <Button icon="pi pi-google" class="w-full" @click="signInWithOauth" />
-            <small class="text-center"
-              >Don't have an account?
-              <NuxtLink to="/signup" class="underline">Sign up</NuxtLink>
-            </small>
-          </div>
-        </template>
-      </Card>
-    </div>
-  </div>
-</template> -->
