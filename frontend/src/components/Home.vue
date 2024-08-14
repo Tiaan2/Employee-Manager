@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
+import InputText from 'primevue/inputtext'
 import { collection, getDocs, Timestamp } from 'firebase/firestore'
 import { db } from '../../firebaseconfig'
 import { ref, onMounted } from 'vue'
+import { FilterMatchMode } from '@primevue/core/api'
 
 type Employee = {
   firstName: string
@@ -60,12 +64,42 @@ const formatTimestamp = (timestamp: Timestamp | null): string => {
 
 onMounted(() => {
   fetchData()
+  loading.value = false
+})
+
+const loading = ref(true)
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  representative: { value: null, matchMode: FilterMatchMode.IN },
+  status: { value: null, matchMode: FilterMatchMode.EQUALS },
+  verified: { value: null, matchMode: FilterMatchMode.EQUALS }
 })
 </script>
 
 <template>
   <div class="card">
-    <DataTable :value="employees" showGridlines tableStyle="min-width: 50rem">
+    <DataTable
+      v-model:filters="filters"
+      :value="employees"
+      paginator
+      :rows="10"
+      :loading="loading"
+      showGridlines
+      tableStyle="min-width: 50rem"
+    >
+      <template #header>
+        <div class="flex justify-end">
+          <IconField>
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
+          </IconField>
+        </div>
+      </template>
+      <template #empty> No employees found. </template>
+      <template #loading> Loading employee data. Please wait. </template>
       <Column field="firstName" header="First Name" sortable></Column>
       <Column field="lastName" header="Last Name" sortable></Column>
       <Column field="employeeNumber" header="Employee Number" sortable></Column>

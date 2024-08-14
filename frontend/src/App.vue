@@ -11,7 +11,7 @@ localStorage.setItem('theme', 'dark')
 
 <template>
   <div class="app-container">
-    <Nav v-if="route.path !== '/login' && route.path !== '/signup'" />
+    <Nav class="navbar" v-if="route.path !== '/login' && route.path !== '/signup'" />
     <main>
       <RouterView />
     </main>
@@ -26,12 +26,20 @@ localStorage.setItem('theme', 'dark')
   min-height: 100vh; /* Full viewport height */
 }
 
+.navbar {
+  margin-bottom: auto;
+  width: 100%;
+}
+
 main {
-  flex: 1; /* Takes up remaining space */
+  flex: 1;
+  width: 100%;
+  padding: 2rem;
 }
 
 .footer {
   margin-top: auto;
   border-top: 1px solid #333;
+  width: 100%;
 }
 </style>

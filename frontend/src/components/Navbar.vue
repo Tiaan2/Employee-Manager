@@ -38,7 +38,7 @@ function getGravatarUrl(email: string, size: number = 80): string {
   return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`
 }
 
-const menu = ref(null)
+const menu = ref<typeof Menu | null>(null)
 
 const isDark = useDark({
   selector: 'app-container',
@@ -86,7 +86,13 @@ watch(isDarkMode, (newVal) => {
 })
 
 const toggleMenu = () => {
-  menu.value.toggle(event)
+  try{
+    if (menu.value){
+      menu.value.toggle(event)
+    }
+  }
+  catch (error) {
+    console.error('Error toggling menu:', error)
 }
 
 const items = ref([
@@ -102,11 +108,11 @@ const items = ref([
 </script>
 
 <template>
-  <nav class="p-4">
-    <div class="mx-auto flex justify-between items-center">
+  <nav>
+    <div class="nav">
       <Menubar :model="items">
         <template #item="{ item, props, hasSubmenu, root }">
-          <a class="flex items-center px-4 py-2 hover:bg-blue-700 rounded" v-bind="props.action">
+          <a class="px-6 py-4 hover:bg-blue-700 rounded" v-bind="props.action">
             <span :class="item.icon" class="mr-2" />
             <span>{{ item.label }}</span>
             <Badge
@@ -129,7 +135,7 @@ const items = ref([
           </a>
         </template>
         <template #end>
-          <div class="flex items-center">
+          <div class="px-6">
             <Button
               type="button"
               icon="pi pi-user"
@@ -150,19 +156,19 @@ const items = ref([
 
 <style scoped>
 /* Navbar styling */
+nav {
+  justify-content: center;
+  align-items: center;
+}
+
 .nav {
-  background-color: #1e40af; /* Customize as needed */
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  background-color: #333;
+  color: white;
+  font-size: 1.5rem;
 }
-
-.nav a {
-  color: #ffffff;
-}
-
-/* Menu item styling */
-.nav a:hover {
-  background-color: #1e3a8a; /* Customize hover color */
-}
-
 /* Avatar styling */
 .avatar {
   border-radius: 50%;
