@@ -8,6 +8,7 @@ import { collection, getDocs, Timestamp } from 'firebase/firestore'
 import { db } from '../../firebaseconfig'
 import { ref, onMounted } from 'vue'
 import { FilterMatchMode } from '@primevue/core/api'
+import { auth } from '../../firebaseconfig'
 
 type Employee = {
   firstName: string
@@ -89,7 +90,8 @@ const filters = ref({
       tableStyle="min-width: 50rem"
     >
       <template #header>
-        <div class="flex justify-end">
+        <div class="header">
+          <span class="text-xl font-bold">Employees</span>
           <IconField>
             <InputIcon>
               <i class="pi pi-search" />
@@ -112,4 +114,23 @@ const filters = ref({
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.card {
+  margin: 4rem;
+  font-size: small;
+  border-radius: 10%;
+}
+
+.search {
+  display: flex;
+
+  justify-content: flex-end;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+</style>

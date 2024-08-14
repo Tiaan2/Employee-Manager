@@ -110,7 +110,7 @@ const signInGoogle = async () => {
     <div class="inner">
       <div class="title"><h1 class="h1">Sign Up</h1></div>
       <Divider></Divider>
-      <div class="flex flex-column row-gap-5">
+      <div class="flex flex-column row-gap-3">
         <InputGroup>
           <InputGroupAddon>
             <i class="pi pi-user"></i>
@@ -147,7 +147,7 @@ const signInGoogle = async () => {
         </InputGroup>
       </div>
       <small v-if="passwordError" class="red">{{ passwordError }}</small>
-      <div class="flex flex-column row-gap-5">
+      <div class="flex flex-column row-gap-3">
         <InputGroup>
           <InputGroupAddon>
             <i class="pi pi-lock"></i>
@@ -163,7 +163,7 @@ const signInGoogle = async () => {
         </InputGroup>
       </div>
       <small v-if="confirmPasswordError" class="red">{{ confirmPasswordError }}</small>
-      <div class="flex flex-column row-gap-5">
+      <div class="flex flex-column row-gap-3">
         <Button v-slot="slotProps" asChild>
           <button
             @click="handleSignup"
@@ -196,39 +196,39 @@ body {
   align-items: center;
   width: 100vw;
   height: 100vh;
-  margin: 0;
-  padding: 0;
 }
 
 .inner {
   width: 50%;
-  max-width: 500px;
+  max-width: 450px;
   background-color: #615a5a;
   padding: 2rem;
   border-radius: 6%;
   box-shadow: 0 7px 10px rgb(0, 0, 0);
+  justify-content: center;
+  align-items: center;
 }
 
 .red {
-  background-color: aliceblue;
   color: #ef4444;
 }
 
 .h1 {
   color: #fff;
   font-weight: bolder;
-  font-size: 4rem;
+  font-size: 3rem;
 }
 
 .title {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: -1rem;
 }
 
 .flex {
   display: flex;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 .cursor-pointer {
   cursor: pointer;

@@ -4,6 +4,8 @@ import { onAuthStateChanged } from 'firebase/auth'
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
 import Home from '../views/Home.vue'
+import Hierarchy from '../views/Hierarchy.vue'
+import Profile from '../views/Profile.vue'
 
 // Create a promise that resolves with the current user or null
 const getCurrentUser = () =>
@@ -18,6 +20,16 @@ const routes = [
   {
     path: '/',
     component: Home,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/hierarchy',
+    component: Hierarchy,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    component: Profile,
     meta: { requiresAuth: true }
   },
   {

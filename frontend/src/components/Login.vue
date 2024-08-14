@@ -96,13 +96,13 @@ const signInGoogle = async () => {
             <i class="pi pi-lock"></i>
           </InputGroupAddon>
           <FloatLabel>
-            <Password v-model="password" toggleMask></Password>
+            <Password v-model="password" toggleMask :feedback="false"></Password>
             <label for="username">Password</label>
           </FloatLabel>
         </InputGroup>
       </div>
       <small v-show="passwordError" class="red">{{ passwordError }}</small>
-      <div class="flex flex-column row-gap-5">
+      <div class="flex flex-column row-gap-4">
         <Button v-slot="slotProps" asChild>
           <button
             @click="handleSignin"

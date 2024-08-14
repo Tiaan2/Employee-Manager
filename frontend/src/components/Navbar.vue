@@ -52,11 +52,8 @@ const isDarkMode = ref(false)
 const menuItems = ref([
   {
     label: 'Profile',
-    icon: 'pi pi-user'
-  },
-  {
-    label: 'Settings',
-    icon: 'pi pi-cog'
+    icon: 'pi pi-user',
+    command: () => router.push('/profile')
   },
   {
     label: 'Theme',
@@ -86,23 +83,25 @@ watch(isDarkMode, (newVal) => {
 })
 
 const toggleMenu = () => {
-  try{
-    if (menu.value){
+  try {
+    if (menu.value) {
       menu.value.toggle(event)
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Error toggling menu:', error)
+  }
 }
 
 const items = ref([
   {
     label: 'Home',
-    icon: 'pi pi-home'
+    icon: 'pi pi-home',
+    to: '/'
   },
   {
-    label: 'Features',
-    icon: 'pi pi-star'
+    label: 'Hierarchy',
+    icon: 'pi pi-sitemap',
+    to: '/hierarchy'
   }
 ])
 </script>
@@ -112,27 +111,29 @@ const items = ref([
     <div class="nav">
       <Menubar :model="items">
         <template #item="{ item, props, hasSubmenu, root }">
-          <a class="px-6 py-4 hover:bg-blue-700 rounded" v-bind="props.action">
-            <span :class="item.icon" class="mr-2" />
-            <span>{{ item.label }}</span>
-            <Badge
-              v-if="item.badge"
-              :class="{ 'ml-auto': !root, 'ml-2': root }"
-              :value="item.badge"
-            />
-            <span
-              v-if="item.shortcut"
-              class="ml-auto border border-surface rounded bg-emphasis text-muted-color text-xs p-1"
-              >{{ item.shortcut }}</span
-            >
-            <i
-              v-if="hasSubmenu"
-              :class="[
-                'pi pi-angle-down',
-                { 'pi-angle-down ml-2': root, 'pi-angle-right ml-auto': !root }
-              ]"
-            ></i>
-          </a>
+          <router-link :to="item.to">
+            <a class="links px-6 py-4 hover:bg-blue-700 rounded" v-bind="props.action">
+              <span :class="item.icon" class="mr-1" />
+              <span>{{ item.label }}</span>
+              <Badge
+                v-if="item.badge"
+                :class="{ 'ml-auto': !root, 'ml-2': root }"
+                :value="item.badge"
+              />
+              <span
+                v-if="item.shortcut"
+                class="ml-auto border border-surface rounded bg-emphasis text-muted-color text-xs p-1"
+                >{{ item.shortcut }}</span
+              >
+              <i
+                v-if="hasSubmenu"
+                :class="[
+                  'pi pi-angle-down',
+                  { 'pi-angle-down ml-2': root, 'pi-angle-right ml-auto': !root }
+                ]"
+              ></i>
+            </a>
+          </router-link>
         </template>
         <template #end>
           <div class="px-6">
@@ -174,5 +175,12 @@ nav {
   border-radius: 50%;
   width: 40px; /* Adjust size as needed */
   height: 40px; /* Adjust size as needed */
+}
+
+.links {
+  color: white;
+}
+.links:hover {
+  color: rgb(255, 199, 199);
 }
 </style>
