@@ -4,7 +4,6 @@ import Signup from '@/components/Signup.vue'
 
 <template>
   <main>
-    <h1>Signup</h1>
     <Signup />
   </main>
 </template>

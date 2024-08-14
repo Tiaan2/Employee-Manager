@@ -18,8 +18,10 @@ const goToSignup = () => {
 
 const email = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const emailError = ref('')
 const passwordError = ref('')
+const confirmPasswordError = ref('')
 
 const isPasswordValid = (password: string): boolean => {
   const regex = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/
@@ -38,6 +40,7 @@ const handleSignup = async () => {
   if (!email.value || !password.value) {
     if (!email.value) emailError.value = 'Email must not be empty'
     if (!password.value) passwordError.value = 'Password must not be empty'
+    if (!confirmPassword.value) confirmPasswordError.value = 'Confirm Password must not be empty'
     return
   }
 
@@ -47,8 +50,13 @@ const handleSignup = async () => {
   }
 
   if (!isPasswordValid(password.value)) {
-    passwordError.value =
-      'Password must be at least 8 characters long and contain at least one uppercase letter and one lowercase letter.'
+    passwordError.value = 'Invalid Password.'
+    return
+  }
+
+  if (password.value !== confirmPassword.value) {
+    confirmPasswordError.value = 'Passwords do not match.'
+    passwordError.value = 'Passwords do not match.'
     return
   }
 
@@ -65,12 +73,15 @@ const handleSignup = async () => {
       switch (errorCode) {
         case 'auth/email-already-in-use':
           emailError.value = 'Email is already in use. Please use a different email.'
+          passwordError.value = ''
           break
         case 'auth/invalid-email':
           emailError.value = 'Invalid email address. Please enter a valid email.'
+          passwordError.value = ''
           break
         case 'auth/weak-password':
           passwordError.value = 'Password is too weak. Please enter a stronger password.'
+          emailError.value = ''
           break
         default:
           console.error('Signup error:', errorMessage)
@@ -95,80 +106,134 @@ const signInGoogle = async () => {
 </script>
 
 <template>
-  <div class="container flex flex-column row-gap-4">
-    <div>
-      <InputGroup>
-        <InputGroupAddon>
-          <i class="pi pi-user"></i>
-        </InputGroupAddon>
-        <FloatLabel>
-          <InputText id="email" v-model="email" />
-          <label for="email">Email</label>
-        </FloatLabel>
-        <small v-if="emailError" class="text-red-500">{{ emailError }}</small>
-      </InputGroup>
+  <div class="outer">
+    <div class="inner">
+      <div class="title"><h1 class="h1">Sign Up</h1></div>
+      <Divider></Divider>
+      <div class="flex flex-column row-gap-5">
+        <InputGroup>
+          <InputGroupAddon>
+            <i class="pi pi-user"></i>
+          </InputGroupAddon>
+          <FloatLabel>
+            <InputText id="email" v-model="email" />
+            <label for="email">Email</label>
+          </FloatLabel>
+        </InputGroup>
+      </div>
+      <small v-if="emailError" class="red">{{ emailError }}</small>
+      <div class="flex flex-column row-gap-5">
+        <InputGroup>
+          <InputGroupAddon>
+            <i class="pi pi-lock"></i>
+          </InputGroupAddon>
+          <FloatLabel>
+            <Password v-model="password" toggleMask>
+              <template #header>
+                <div class="font-semibold text-xm mb-4">Pick a password</div>
+              </template>
+              <template #footer>
+                <Divider />
+                <ul class="pl-2 ml-2 my-0 leading-normal">
+                  <li>At least one lowercase letter</li>
+                  <li>At least one uppercase letter</li>
+                  <li>At least one number</li>
+                  <li>Minimum 8 of characters</li>
+                </ul>
+              </template>
+            </Password>
+            <label for="username">Password</label>
+          </FloatLabel>
+        </InputGroup>
+      </div>
+      <small v-if="passwordError" class="red">{{ passwordError }}</small>
+      <div class="flex flex-column row-gap-5">
+        <InputGroup>
+          <InputGroupAddon>
+            <i class="pi pi-lock"></i>
+          </InputGroupAddon>
+          <FloatLabel>
+            <Password v-model="confirmPassword" :feedback="false" toggleMask>
+              <template #header>
+                <div class="font-semibold text-xm mb-4">Confirm your password</div>
+              </template>
+            </Password>
+            <label for="username">Confirm Password</label>
+          </FloatLabel>
+        </InputGroup>
+      </div>
+      <small v-if="confirmPasswordError" class="red">{{ confirmPasswordError }}</small>
+      <div class="flex flex-column row-gap-5">
+        <Button v-slot="slotProps" asChild>
+          <button
+            @click="handleSignup"
+            v-bind="slotProps.a11yAttrs"
+            class="rounded-lg bg-gradient-to-br from-primary-400 to-primary-700 active:from-primary-700 active:to-primary-900 text-white border-none px-6 py-3 font-bold hover:ring-2 cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 ring-primary transition-all"
+          >
+            Sign Up
+          </button>
+        </Button>
+        <Divider> OR </Divider>
+        <Button class="google" @click="signInGoogle">Google Sign In</Button>
+        <a class="cursor-pointer" @click="goToSignup"> Already have an account? Log In </a>
+      </div>
     </div>
-    <div>
-      <InputGroup>
-        <InputGroupAddon>
-          <i class="pi pi-lock"></i>
-        </InputGroupAddon>
-        <FloatLabel>
-          <Password v-model="password">
-            <template #header>
-              <div class="font-semibold text-xm mb-4">Pick a password</div>
-            </template>
-            <template #footer>
-              <Divider />
-              <ul class="pl-2 ml-2 my-0 leading-normal">
-                <li>At least one lowercase</li>
-                <li>At least one uppercase</li>
-                <li>At least one number</li>
-                <li>Minimum 8 characters</li>
-              </ul>
-            </template>
-          </Password>
-          <label for="username">Password</label>
-        </FloatLabel>
-        <small v-if="passwordError" class="text-red-500">{{ passwordError }}</small>
-      </InputGroup>
-    </div>
-    <Button v-slot="slotProps" asChild>
-      <button
-        @click="handleSignup"
-        v-bind="slotProps.a11yAttrs"
-        class="rounded-lg bg-gradient-to-br from-primary-400 to-primary-700 active:from-primary-700 active:to-primary-900 text-white border-none px-6 py-3 font-bold hover:ring-2 cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 ring-primary transition-all"
-      >
-        Sign Up
-      </button>
-    </Button>
-    <Divider> OR </Divider>
-    <div class="flex justify-between items-center mt-4">
-      <Button class="text-blue-500" @click="signInGoogle">Google Sign In</Button>
-    </div>
-
-    <a class="cursor-pointer" @click="goToSignup"> Already have an account? Log In </a>
   </div>
 </template>
 
 <style>
+html,
 body {
   height: 100%;
   margin: 0;
+  overflow: hidden;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
-.container {
+.outer {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 150%;
-  width: 150%;
-  padding: 2rem;
-  margin: 2rem;
-  border: 1px solid red;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
+.inner {
+  width: 50%;
+  max-width: 500px;
+  background-color: #615a5a;
+  padding: 2rem;
+  border-radius: 6%;
+  box-shadow: 0 7px 10px rgb(0, 0, 0);
+}
+
+.red {
+  background-color: aliceblue;
+  color: #ef4444;
+}
+
+.h1 {
+  color: #fff;
+  font-weight: bolder;
+  font-size: 4rem;
+}
+
+.title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex {
+  display: flex;
+  margin-top: 2rem;
+}
 .cursor-pointer {
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
