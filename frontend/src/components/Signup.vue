@@ -6,6 +6,7 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Divider from 'primevue/divider'
+import Card from 'primevue/card'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { auth } from '../../firebaseconfig'
@@ -106,78 +107,82 @@ const signInGoogle = async () => {
 </script>
 
 <template>
-  <div class="outer">
-    <div class="inner">
-      <div class="title"><h1 class="h1">Sign Up</h1></div>
-      <Divider></Divider>
-      <div class="flex flex-column row-gap-3">
-        <InputGroup>
-          <InputGroupAddon>
-            <i class="pi pi-user"></i>
-          </InputGroupAddon>
-          <FloatLabel>
-            <InputText id="email" v-model="email" />
-            <label for="email">Email</label>
-          </FloatLabel>
-        </InputGroup>
-      </div>
-      <small v-if="emailError" class="red">{{ emailError }}</small>
-      <div class="flex flex-column row-gap-5">
-        <InputGroup>
-          <InputGroupAddon>
-            <i class="pi pi-lock"></i>
-          </InputGroupAddon>
-          <FloatLabel>
-            <Password v-model="password" toggleMask>
-              <template #header>
-                <div class="font-semibold text-xm mb-4">Pick a password</div>
-              </template>
-              <template #footer>
-                <Divider />
-                <ul class="pl-2 ml-2 my-0 leading-normal">
-                  <li>At least one lowercase letter</li>
-                  <li>At least one uppercase letter</li>
-                  <li>At least one number</li>
-                  <li>Minimum 8 of characters</li>
-                </ul>
-              </template>
-            </Password>
-            <label for="username">Password</label>
-          </FloatLabel>
-        </InputGroup>
-      </div>
-      <small v-if="passwordError" class="red">{{ passwordError }}</small>
-      <div class="flex flex-column row-gap-3">
-        <InputGroup>
-          <InputGroupAddon>
-            <i class="pi pi-lock"></i>
-          </InputGroupAddon>
-          <FloatLabel>
-            <Password v-model="confirmPassword" :feedback="false" toggleMask>
-              <template #header>
-                <div class="font-semibold text-xm mb-4">Confirm your password</div>
-              </template>
-            </Password>
-            <label for="username">Confirm Password</label>
-          </FloatLabel>
-        </InputGroup>
-      </div>
-      <small v-if="confirmPasswordError" class="red">{{ confirmPasswordError }}</small>
-      <div class="flex flex-column row-gap-3">
-        <Button v-slot="slotProps" asChild>
-          <button
-            @click="handleSignup"
-            v-bind="slotProps.a11yAttrs"
-            class="rounded-lg bg-gradient-to-br from-primary-400 to-primary-700 active:from-primary-700 active:to-primary-900 text-white border-none px-6 py-3 font-bold hover:ring-2 cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 ring-primary transition-all"
-          >
-            Sign Up
-          </button>
-        </Button>
-        <Divider> OR </Divider>
-        <Button class="google" @click="signInGoogle">Google Sign In</Button>
-        <a class="cursor-pointer" @click="goToSignup"> Already have an account? Log In </a>
-      </div>
-    </div>
+  <div class="temp">
+    <Card style="width: 100%; display: flex">
+      <template #content>
+        <div class="inner">
+          <div class="title"><h1 class="h1">Sign Up</h1></div>
+          <Divider></Divider>
+          <div class="flex flex-column row-gap-3">
+            <InputGroup>
+              <InputGroupAddon>
+                <i class="pi pi-user"></i>
+              </InputGroupAddon>
+              <FloatLabel>
+                <InputText id="email" v-model="email" />
+                <label for="email">Email</label>
+              </FloatLabel>
+            </InputGroup>
+          </div>
+          <small v-if="emailError" class="red">{{ emailError }}</small>
+          <div class="flex flex-column row-gap-5">
+            <InputGroup>
+              <InputGroupAddon>
+                <i class="pi pi-lock"></i>
+              </InputGroupAddon>
+              <FloatLabel>
+                <Password v-model="password" toggleMask>
+                  <template #header>
+                    <div class="font-semibold text-xm mb-4">Pick a password</div>
+                  </template>
+                  <template #footer>
+                    <Divider />
+                    <ul class="pl-2 ml-2 my-0 leading-normal">
+                      <li>At least one lowercase letter</li>
+                      <li>At least one uppercase letter</li>
+                      <li>At least one number</li>
+                      <li>Minimum 8 of characters</li>
+                    </ul>
+                  </template>
+                </Password>
+                <label for="username">Password</label>
+              </FloatLabel>
+            </InputGroup>
+          </div>
+          <small v-if="passwordError" class="red">{{ passwordError }}</small>
+          <div class="flex flex-column row-gap-3">
+            <InputGroup>
+              <InputGroupAddon>
+                <i class="pi pi-lock"></i>
+              </InputGroupAddon>
+              <FloatLabel>
+                <Password v-model="confirmPassword" :feedback="false" toggleMask>
+                  <template #header>
+                    <div class="font-semibold text-xm mb-4">Confirm your password</div>
+                  </template>
+                </Password>
+                <label for="username">Confirm Password</label>
+              </FloatLabel>
+            </InputGroup>
+          </div>
+          <small v-if="confirmPasswordError" class="red">{{ confirmPasswordError }}</small>
+          <div class="flex flex-column row-gap-3">
+            <Button v-slot="slotProps" asChild>
+              <button
+                @click="handleSignup"
+                v-bind="slotProps.a11yAttrs"
+                class="rounded-lg bg-gradient-to-br from-primary-400 to-primary-700 active:from-primary-700 active:to-primary-900 text-white border-none px-6 py-3 font-bold hover:ring-2 cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 ring-primary transition-all"
+              >
+                Sign Up
+              </button>
+            </Button>
+            <Divider> OR </Divider>
+            <Button class="google" @click="signInGoogle">Google Sign In</Button>
+            <a class="cursor-pointer" @click="goToSignup"> Already have an account? Log In </a>
+          </div>
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
 
@@ -188,6 +193,12 @@ body {
   margin: 0;
   overflow: hidden;
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.temp {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .outer {
@@ -201,7 +212,6 @@ body {
 .inner {
   width: 50%;
   max-width: 450px;
-  background-color: #615a5a;
   padding: 2rem;
   border-radius: 6%;
   box-shadow: 0 7px 10px rgb(0, 0, 0);
@@ -214,7 +224,6 @@ body {
 }
 
 .h1 {
-  color: #fff;
   font-weight: bolder;
   font-size: 3rem;
 }
