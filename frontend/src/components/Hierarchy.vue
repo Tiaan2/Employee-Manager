@@ -69,13 +69,11 @@ function buildTree(employees: Employee[]): any {
   const nodeMap = new Map<string, Node<Employee>>()
   const rootNodes: Node<Employee>[] = []
 
-  // Create nodes
   employees.forEach((employee) => {
     const node = new Node(employee)
     nodeMap.set(employee.id, node)
   })
 
-  // Assign children to nodes
   employees.forEach((employee) => {
     const node = nodeMap.get(employee.id)
     if (!node) {
@@ -93,20 +91,18 @@ function buildTree(employees: Employee[]): any {
     }
   })
 
-  // Ensure we have a single root node
   if (rootNodes.length === 1) {
     return transformNode(rootNodes[0])
   } else {
     console.error('Multiple root nodes found')
-    return [] // Handle accordingly if multiple root nodes are found
+    return []
   }
 }
 
-// Transform function
 function transformNode(node: Node<Employee>): any {
   return {
     label: node.label,
-    children: node.children.map(transformNode) // Recursive transformation
+    children: node.children.map(transformNode)
   }
 }
 

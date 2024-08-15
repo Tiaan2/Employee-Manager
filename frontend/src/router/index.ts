@@ -5,13 +5,11 @@ import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
 import Home from '../views/Home.vue'
 import Hierarchy from '../views/Hierarchy.vue'
-import Profile from '../views/Profile.vue'
 
-// Create a promise that resolves with the current user or null
 const getCurrentUser = () =>
   new Promise((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe() // Unsubscribe to avoid memory leaks
+      unsubscribe()
       resolve(user)
     })
   })
@@ -25,11 +23,6 @@ const routes = [
   {
     path: '/hierarchy',
     component: Hierarchy,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/profile',
-    component: Profile,
     meta: { requiresAuth: true }
   },
   {
@@ -62,7 +55,7 @@ router.beforeEach(async (to, from, next) => {
     }
   } catch (error) {
     console.error('Error in navigation guard:', error)
-    next('/login') // Redirect to login or handle the error as needed
+    next('/login')
   }
 })
 

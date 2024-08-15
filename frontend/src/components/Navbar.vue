@@ -51,11 +51,6 @@ const toggleDark = useToggle(isDark)
 const isDarkMode = ref(false)
 const menuItems = ref([
   {
-    label: 'Profile',
-    icon: 'pi pi-user',
-    command: () => router.push('/profile')
-  },
-  {
     label: 'Theme',
     icon: isDarkMode.value ? 'pi pi-sun' : 'pi pi-moon',
     command: () => toggleDark()
@@ -77,7 +72,6 @@ const toggleDarkMode = () => {
   }
 }
 
-// Watch for changes in isDarkMode to update menuItems
 watch(isDarkMode, (newVal) => {
   menuItems.value[2].icon = newVal ? 'pi pi-sun' : 'pi pi-moon'
 })
