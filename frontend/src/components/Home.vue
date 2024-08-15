@@ -74,6 +74,7 @@ const handleAddEmployee = async () => {
     isManager: isManager.value
   })
   selectedEmployee.value = null
+  await fetchData()
   console.log('Document written with ID: ', docRef.id)
 }
 
@@ -134,17 +135,20 @@ const onRowEditSave = async (event: { newData: Employee; index: number }) => {
     console.log('Document updated successfully')
     employees.value[index] = newData
     editingRows.value = []
+    await fetchData()
   } catch (error) {
     console.error('Error updating document: ', error)
   }
 }
 
 const deleteSelected = async () => {
-  if (confirm(`Are you sure you want to delete ${selected.value.length} employees?`)) {
+  if (
+    confirm(
+      `Are you sure you want to delete '${selected.value.firstName} ${selected.value.lastName}'?`
+    )
+  ) {
     try {
-      for (const employee of selected.value) {
-        await deleteDoc(doc(db, 'employees', employee.id))
-      }
+      await deleteDoc(doc(db, 'employees', selected.value.id))
       await fetchData()
       selected.value = []
     } catch (error) {
