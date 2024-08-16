@@ -6,6 +6,8 @@ import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
+import Toast from 'primevue/toast'
+import { useToast } from 'primevue/usetoast'
 import Dialog from 'primevue/dialog'
 import DatePicker from 'primevue/datepicker'
 import SelectButton from 'primevue/selectbutton'
@@ -25,6 +27,8 @@ import { ref, onMounted, computed } from 'vue'
 import { FilterMatchMode } from '@primevue/core/api'
 import { auth } from '../../firebaseconfig'
 
+const toast = useToast()
+const deleteConfirmation = ref(false)
 const editingRows = ref([])
 const selected = ref()
 const size = ref({ label: 'Small', value: 'small' })
@@ -61,7 +65,30 @@ const validateInputs = (): boolean => {
 
 const handleAddEmployee = async () => {
   if (!validateInputs()) {
-    console.log()
+    Object.keys(errors.value).forEach((field) => {
+      const errorMessage = errors.value[field]
+      toast.add({
+        severity: 'error',
+        summary: `Error in ${field}`,
+        detail: errorMessage,
+        group: 'tl',
+        life: 3000
+      })
+    })
+    return
+  }
+  if (position.value === 'CEO' || position.value === 'Ceo' || position.value === 'ceo') {
+    const ceo = employees.value.find((emp) => emp.position === 'CEO')
+    if (ceo) {
+      toast.add({
+        severity: 'error',
+        summary: 'CEO already exists',
+        detail: 'There can only be one CEO in the company',
+        group: 'tl',
+        life: 3000
+      })
+      return
+    }
   }
   const selectedEmployeeId = selectedEmployee.value.code || null
   const docRef = await addDoc(collection(db, 'employees'), {
@@ -74,8 +101,14 @@ const handleAddEmployee = async () => {
     isManager: isManager.value
   })
   selectedEmployee.value = null
+  visible.value = false
   await fetchData()
-  console.log('Document written with ID: ', docRef.id)
+  toast.add({
+    severity: 'success',
+    summary: 'Employee added successfully',
+    group: 'tl',
+    life: 3000
+  })
 }
 
 type Employee = {
@@ -87,15 +120,16 @@ type Employee = {
   position: string
   managerId: string
   isManager: boolean
+  managerName: string
 }
 
 const fetchData = async () => {
   loading.value = true
   try {
     const querySnapshot = await getDocs(collection(db, 'employees'))
-    employees.value = querySnapshot.docs.map((doc) => {
+    const tempEmployees = querySnapshot.docs.map((doc) => {
       const data = doc.data() as Record<string, any>
-      const employee = {
+      return {
         id: doc.id,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -103,9 +137,19 @@ const fetchData = async () => {
         salary: data.Salary,
         position: data.Position,
         managerId: data.managerId,
-        isManager: data.isManager
+        isManager: data.isManager,
+        managerName: ''
       }
-      return employee
+    })
+    setTimeout(() => {}, 0)
+    employees.value = tempEmployees.map((emp) => {
+      if (emp.managerId) {
+        const manager = tempEmployees.find((e) => e.id == emp.managerId)
+        emp.managerName = manager ? `${manager.firstName} ${manager.lastName}` : 'Unknown'
+      } else {
+        emp.managerName = 'None'
+      }
+      return emp
     })
   } catch (error) {
     console.error('Error fetching data:', error)
@@ -123,6 +167,26 @@ const formatTimestamp = (timestamp: Timestamp | null): string => {
 const onRowEditSave = async (event: { newData: Employee; index: number }) => {
   const { newData, index } = event
   try {
+    if (newData.id === newData.managerId) {
+      toast.add({
+        severity: 'error',
+        summary: 'Employee cannot be their own manager',
+        detail: 'Please select a different manager',
+        group: 'tl',
+        life: 3000
+      })
+      return
+    }
+    if (newData.position === 'CEO' && newData.managerId) {
+      toast.add({
+        severity: 'error',
+        summary: 'The CEO cannot have a manager',
+        detail: 'Otherwise the company hierarchy will be broken',
+        group: 'tl',
+        life: 3000
+      })
+      return
+    }
     const employeeRef = doc(db, 'employees', newData.id)
     await updateDoc(employeeRef, {
       firstName: newData.firstName,
@@ -130,37 +194,39 @@ const onRowEditSave = async (event: { newData: Employee; index: number }) => {
       birthDate: Timestamp.fromDate(new Date(newData.birthDate)),
       Salary: newData.salary,
       Position: newData.position,
-      isManager: newData.isManager
+      isManager: newData.isManager,
+      managerId: newData.managerId
     })
-    console.log('Document updated successfully')
     employees.value[index] = newData
     editingRows.value = []
     await fetchData()
+    toast.add({
+      severity: 'success',
+      summary: 'Employee updated successfully',
+      group: 'tl',
+      life: 3000
+    })
   } catch (error) {
     console.error('Error updating document: ', error)
   }
 }
 
 const deleteSelected = async () => {
-  if (
-    confirm(
-      `Are you sure you want to delete '${selected.value.firstName} ${selected.value.lastName}'?`
-    )
-  ) {
-    try {
-      await deleteDoc(doc(db, 'employees', selected.value.id))
-      await fetchData()
-      selected.value = []
-    } catch (error) {
-      console.error('Error deleting employees:', error)
-    }
+  try {
+    await deleteDoc(doc(db, 'employees', selected.value.id))
+    await fetchData()
+    selected.value = []
+  } catch (error) {
+    console.error('Error deleting employees:', error)
+  } finally {
+    toast.add({
+      severity: 'success',
+      summary: 'Employee deleted successfully',
+      life: 3000,
+      group: 'tl'
+    })
   }
 }
-
-onMounted(() => {
-  fetchData()
-  loading.value = false
-})
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -169,10 +235,17 @@ const filters = ref({
   status: { value: null, matchMode: FilterMatchMode.EQUALS },
   verified: { value: null, matchMode: FilterMatchMode.EQUALS }
 })
+
+onMounted(() => {
+  fetchData()
+  loading.value = false
+})
 </script>
 
 <template>
   <div class="card">
+    <Toast />
+    <Toast position="bottom-right" group="tl" />
     <DataTable
       v-model:editingRows="editingRows"
       :value="employees"
@@ -193,22 +266,32 @@ const filters = ref({
     >
       <template #header>
         <div class="header">
-          <span class="text-xl font-bold">Employees</span>
-          <div class="search">
-            <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
-            </IconField>
+          <div class="spacing">
+            <span class="text-xl font-bold">Employees</span>
+            <div class="search">
+              <IconField>
+                <InputIcon>
+                  <i class="pi pi-search" />
+                </InputIcon>
+                <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
+              </IconField>
+            </div>
+            <div class="buttons">
+              <Button
+                label="Delete Employee"
+                @click="deleteSelected"
+                icon="pi pi-trash"
+                severity="danger"
+                :disabled="selected == null"
+              />
+              <Button
+                class="button"
+                icon="pi pi-plus"
+                label="Add Employee"
+                @click="visible = true"
+              />
+            </div>
           </div>
-          <Button class="button" icon="pi pi-plus" label="Add Employee" @click="visible = true" />
-          <Button
-            label="Delete Selected"
-            @click="deleteSelected"
-            class="mb-3"
-            :disabled="selected == null"
-          />
           <Dialog v-model:visible="visible" modal header="Add Employee">
             <div class="dialog">
               <div class="dialog-columns flex flex-column gap-4">
@@ -253,12 +336,14 @@ const filters = ref({
                   type="button"
                   label="Cancel"
                   severity="secondary"
+                  icon="pi pi-times"
                   @click="visible = false"
                 ></Button>
                 <Button
                   type="button"
                   label="Save"
-                  @click="handleAddEmployee(), (visible = false)"
+                  icon="pi pi-check"
+                  @click="handleAddEmployee()"
                 ></Button>
               </div>
             </div>
@@ -267,49 +352,57 @@ const filters = ref({
       </template>
       <template #empty> No employees found. </template>
       <template #loading> Loading employee data. Please wait. </template>
-      <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-      <Column field="firstName" header="First Name" sortable>
+      <Column selectionMode="single" headerStyle="width: 3%"></Column>
+      <Column field="firstName" header="First Name" style="width: 12%" sortable>
         <template #editor="{ data, field }">
           <InputText v-model="data[field]" />
         </template>
       </Column>
-      <Column field="lastName" header="Last Name" sortable>
+      <Column field="lastName" header="Last Name" style="width: 12%" sortable>
         <template #editor="{ data, field }">
           <InputText v-model="data[field]" />
         </template>
       </Column>
-      <Column field="salary" header="Salary" sortable>
-        <template #editor="{ data, field }">
-          <InputNumber v-model="data[field]" mode="currency" currency="USD" locale="en-US" />
-        </template>
-      </Column>
-      <Column field="position" header="Position" sortable>
+      <Column field="position" header="Position" style="width: 15%" sortable>
         <template #editor="{ data, field }">
           <InputText v-model="data[field]" />
         </template>
       </Column>
-      <Column field="birthDate" header="Birth Date" sortable>
+      <Column field="salary" header="Salary" style="width: 10%" sortable>
+        <template #editor="{ data, field }">
+          <InputNumber v-model="data[field]" mode="currency" currency="ZAR" locale="en-US" fluid />
+        </template>
+      </Column>
+      <Column field="birthDate" header="Birth Date" style="width: 10%" sortable>
         <template #editor="{ data, field }">
           <DatePicker v-model="data[field]" inputId="birth_date" />
         </template>
       </Column>
-      <Column field="isManager" header="Manager" sortable>
+      <Column field="isManager" header="Manager" style="width: 10%" sortable>
         <template #editor="{ data, field }">
           <SelectButton v-model="data[field]" :options="options" />
         </template>
       </Column>
-      <Column
-        :rowEditor="true"
-        style="width: 10%; min-width: 8rem"
-        bodyStyle="text-align:center"
-      ></Column>
+      <Column field="managerName" header="Manager" style="width: 10%" sortable>
+        <template #editor="{ data }">
+          <Select
+            v-model="data.managerId"
+            :options="employeeOptions"
+            optionLabel="name"
+            optionValue="code"
+            :placeholder="data.managerName"
+            class="w-full md:w-56"
+          />
+        </template>
+      </Column>
+      <Column :rowEditor="true" style="width: 8%" bodyStyle="text-align:center"></Column>
     </DataTable>
   </div>
 </template>
 
 <style scoped>
 .card {
-  margin: 4rem;
+  margin: 2rem;
   font-size: small;
   border-radius: 10%;
 }
@@ -318,16 +411,6 @@ const filters = ref({
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-button {
-  background-color: #4caf50;
-  color: white;
-  padding: 14px 20px;
-  margin: 8px 0;
-  border: none;
-  cursor: pointer;
-  font-size: small;
 }
 
 .dialog {
@@ -353,6 +436,15 @@ dialog-columns {
 .buttons {
   display: flex;
   justify-content: end;
+  gap: 1rem;
   align-items: center;
+}
+
+.spacing {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 1rem;
 }
 </style>

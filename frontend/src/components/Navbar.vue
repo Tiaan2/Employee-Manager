@@ -103,10 +103,10 @@ const items = ref([
 <template>
   <nav>
     <div class="nav">
-      <Menubar :model="items">
-        <template #item="{ item, props, hasSubmenu, root }">
+      <Menubar class="menu" :model="items">
+        <template #item="{ item, props, root }">
           <router-link :to="item.to">
-            <a class="links px-6 py-4 hover:bg-blue-700 rounded" v-bind="props.action">
+            <a class="links px-6 py-4" v-bind="props.action">
               <span :class="item.icon" class="mr-1" />
               <span>{{ item.label }}</span>
               <Badge
@@ -114,18 +114,7 @@ const items = ref([
                 :class="{ 'ml-auto': !root, 'ml-2': root }"
                 :value="item.badge"
               />
-              <span
-                v-if="item.shortcut"
-                class="ml-auto border border-surface rounded bg-emphasis text-muted-color text-xs p-1"
-                >{{ item.shortcut }}</span
-              >
-              <i
-                v-if="hasSubmenu"
-                :class="[
-                  'pi pi-angle-down',
-                  { 'pi-angle-down ml-2': root, 'pi-angle-right ml-auto': !root }
-                ]"
-              ></i>
+              <span v-if="item.shortcut">{{ item.shortcut }}</span>
             </a>
           </router-link>
         </template>
@@ -150,7 +139,6 @@ const items = ref([
 </template>
 
 <style scoped>
-/* Navbar styling */
 nav {
   justify-content: center;
   align-items: center;
@@ -160,21 +148,16 @@ nav {
   justify-content: center;
   align-items: center;
   width: 100vw;
-  background-color: #333;
-  color: white;
   font-size: 1.5rem;
 }
-/* Avatar styling */
+
 .avatar {
   border-radius: 50%;
-  width: 40px; /* Adjust size as needed */
-  height: 40px; /* Adjust size as needed */
+  width: 40px;
+  height: 40px;
 }
 
 .links {
   color: white;
-}
-.links:hover {
-  color: rgb(255, 199, 199);
 }
 </style>
