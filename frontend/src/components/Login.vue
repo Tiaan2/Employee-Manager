@@ -103,17 +103,10 @@ const signInGoogle = async () => {
       </div>
       <small v-show="passwordError" class="red">{{ passwordError }}</small>
       <div class="flex flex-column row-gap-4">
-        <Button v-slot="slotProps" asChild>
-          <button
-            @click="handleSignin"
-            v-bind="slotProps.a11yAttrs"
-            class="rounded-lg bg-gradient-to-br from-primary-400 to-primary-700 active:from-primary-700 active:to-primary-900 text-white border-none px-6 py-3 font-bold hover:ring-2 cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 ring-primary transition-all"
-          >
-            Log In
-          </button>
-        </Button>
+        <Button label="Login" severity="primary" rounded @click="handleSignin" />
+
         <Divider>OR</Divider>
-        <Button class="google" @click="signInGoogle">Google Sign In</Button>
+        <Button label="Google Sign In" severity="success" @click="signInGoogle" />
         <a class="cursor-pointer" @click="goToSignup"> Don't have an account? Sign Up </a>
       </div>
     </div>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import { computed } from 'vue'
-import { currentUser } from '../../firebaseconfig'
 import { getAuth, signOut } from 'firebase/auth'
 import { useRouter } from 'vue-router'
 import md5 from 'md5'
@@ -10,17 +9,17 @@ import Button from 'primevue/button'
 import Menu from 'primevue/menu'
 import Menubar from 'primevue/menubar'
 import Badge from 'primevue/badge'
-import { useDark, useToggle } from '@vueuse/core'
 
 const auth = getAuth()
-const user = computed(() => currentUser.value)
-const email = user.value?.email ?? ''
-const gravatarUrl = getGravatarUrl(email)
 const router = useRouter()
-const isAuthenticated = ref(auth.currentUser !== null)
+const user = ref(auth.currentUser)
+const isAuthenticated = ref(!!user.value)
+const email = computed(() => user.value?.email || '')
+const gravatarUrl = computed(() => getGravatarUrl(email.value))
 
-auth.onAuthStateChanged((user) => {
-  isAuthenticated.value = !!user
+auth.onAuthStateChanged((currentUser) => {
+  user.value = currentUser
+  isAuthenticated.value = !!currentUser
 })
 
 const handleLogout = async () => {
@@ -35,54 +34,41 @@ const handleLogout = async () => {
 function getGravatarUrl(email: string, size: number = 80): string {
   const normalizedEmail = email.trim().toLowerCase()
   const hash = md5(normalizedEmail)
-  return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`
+  return `https://gravatar.com/avatar/${hash}`
 }
 
 const menu = ref<typeof Menu | null>(null)
 
-const isDark = useDark({
-  selector: 'app-container',
-  attribute: 'color-scheme',
-  valueDark: 'dark',
-  valueLight: 'light'
-})
-
-const toggleDark = useToggle(isDark)
 const isDarkMode = ref(false)
+
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value
+  document.documentElement.classList.toggle('my-app-dark', isDarkMode.value)
+  localStorage.setItem('darkMode', isDarkMode.value.toString())
+  updateMenuItems()
+}
+
+const updateMenuItems = () => {
+  menuItems.value[0].icon = isDarkMode.value ? 'pi pi-sun' : 'pi pi-moon'
+  menuItems.value[0].label = isDarkMode.value ? 'Light Mode' : 'Dark Mode'
+}
+
 const menuItems = ref([
   {
-    label: 'Theme',
-    icon: isDarkMode.value ? 'pi pi-sun' : 'pi pi-moon',
-    command: () => toggleDark()
+    label: 'Dark Mode',
+    icon: 'pi pi-moon',
+    command: toggleDarkMode
   },
   {
     label: 'Logout',
     icon: 'pi pi-sign-out',
-    command: () => handleLogout()
+    command: handleLogout
   }
 ])
 
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  document.body.classList.toggle('my-app-dark', isDarkMode.value)
-  if (isDarkMode.value) {
-    localStorage.setItem('theme', 'dark')
-  } else {
-    localStorage.removeItem('theme')
-  }
-}
-
-watch(isDarkMode, (newVal) => {
-  menuItems.value[2].icon = newVal ? 'pi pi-sun' : 'pi pi-moon'
-})
-
-const toggleMenu = () => {
-  try {
-    if (menu.value) {
-      menu.value.toggle(event)
-    }
-  } catch (error) {
-    console.error('Error toggling menu:', error)
+const toggleMenu = (event: Event) => {
+  if (menu.value) {
+    menu.value.toggle(event)
   }
 }
 
@@ -98,6 +84,26 @@ const items = ref([
     to: '/hierarchy'
   }
 ])
+
+onMounted(() => {
+  const savedTheme = localStorage.getItem('darkMode')
+  if (savedTheme !== null) {
+    isDarkMode.value = savedTheme === 'true'
+  } else {
+    isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+  document.documentElement.classList.toggle('my-app-dark', isDarkMode.value)
+  updateMenuItems()
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  mediaQuery.addEventListener('change', (e) => {
+    if (localStorage.getItem('darkMode') === null) {
+      isDarkMode.value = e.matches
+      document.documentElement.classList.toggle('my-app-dark', isDarkMode.value)
+      updateMenuItems()
+    }
+  })
+})
 </script>
 
 <template>
@@ -142,6 +148,7 @@ const items = ref([
 nav {
   justify-content: center;
   align-items: center;
+  border-bottom: 1px solid #333;
 }
 
 .nav {
@@ -149,15 +156,5 @@ nav {
   align-items: center;
   width: 100vw;
   font-size: 1.5rem;
-}
-
-.avatar {
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-}
-
-.links {
-  color: white;
 }
 </style>
