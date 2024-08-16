@@ -6,7 +6,6 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Divider from 'primevue/divider'
-import Card from 'primevue/card'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { auth } from '../../firebaseconfig'
@@ -107,7 +106,6 @@ const signInGoogle = async () => {
   <div class="outer">
     <div class="inner">
       <div class="title"><h1 class="h1">Sign Up</h1></div>
-      <!-- <img src="../assets/STAFF.png" alt="logo" class="img" /> -->
       <Divider></Divider>
       <div class="flex flex-column row-gap-3">
         <InputGroup>

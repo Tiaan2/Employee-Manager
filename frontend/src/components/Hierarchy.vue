@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import OrganizationChart from 'primevue/organizationchart'
-import Fieldset from 'primevue/fieldset'
 import { collection, getDocs, query, Timestamp, where } from 'firebase/firestore'
 import { db } from '../../firebaseconfig'
 import { ref, onMounted } from 'vue'
@@ -110,7 +109,6 @@ async function getEmployeeHierarchy() {
   const fetchedEmployees = await fetchData()
   employees.value = fetchedEmployees
   data.value = buildTree(fetchedEmployees)
-  console.log(data.value)
 }
 
 onMounted(() => {

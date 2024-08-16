@@ -21,7 +21,7 @@ localStorage.setItem('theme', 'dark')
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Full viewport height */
+  min-height: 100vh;
 }
 
 .navbar {

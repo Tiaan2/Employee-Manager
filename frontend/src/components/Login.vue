@@ -30,7 +30,6 @@ const handleSignin = async () => {
     }
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
     const user = userCredential.user
-    console.log('User signed up:', user)
     router.push('/')
   } catch (error) {
     if (error instanceof Error) {
@@ -62,9 +61,6 @@ const signInGoogle = async () => {
   const provider = new GoogleAuthProvider()
   signInWithPopup(auth, provider)
     .then((result) => {
-      // const credential = GoogleAuthProvider.credentialFromResult(result)
-      // const token = credential.accessToken
-      // const user = result.user
       router.push('/')
     })
     .catch((error) => {
