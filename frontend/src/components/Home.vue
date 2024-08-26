@@ -17,10 +17,13 @@ import {
   collection,
   getDocs,
   doc,
+  query,
+  where,
   Timestamp,
   addDoc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  setDoc
 } from 'firebase/firestore'
 import { db } from '../../firebaseconfig'
 import { ref, onMounted, computed } from 'vue'
@@ -38,8 +41,8 @@ const options = ref(['No', 'Yes'])
 const date = ref()
 const firstName = ref(null)
 const lastName = ref(null)
-const salary = ref(null)
-const position = ref(null)
+const Salary = ref(null)
+const Position = ref(null)
 const employees = ref<Employee[]>([])
 const loading = ref(true)
 const selectedEmployee = ref<any>(null)
@@ -56,9 +59,9 @@ const validateInputs = (): boolean => {
   if (!firstName.value) errors.value.firstName = 'First name is required'
   if (!lastName.value) errors.value.lastName = 'Last name is required'
   if (!date.value) errors.value.date = 'Birth date is required'
-  if (!salary.value) errors.value.salary = 'Salary is required'
-  else if (isNaN(Number(salary.value))) errors.value.salary = 'Salary must be a number'
-  if (!position.value) errors.value.position = 'Position is required'
+  if (!Salary.value) errors.value.Salary = 'Salary is required'
+  else if (isNaN(Number(Salary.value))) errors.value.Salary = 'Salary must be a number'
+  if (!Position.value) errors.value.Position = 'Position is required'
 
   return Object.keys(errors.value).length === 0
 }
@@ -77,8 +80,8 @@ const handleAddEmployee = async () => {
     })
     return
   }
-  if (position.value === 'CEO' || position.value === 'Ceo' || position.value === 'ceo') {
-    const ceo = employees.value.find((emp) => emp.position === 'CEO')
+  if (Position.value === 'CEO' || Position.value === 'Ceo' || Position.value === 'ceo') {
+    const ceo = employees.value.find((emp) => emp.Position === 'CEO')
     if (ceo) {
       toast.add({
         severity: 'error',
@@ -95,8 +98,8 @@ const handleAddEmployee = async () => {
     firstName: firstName.value,
     lastName: lastName.value,
     birthDate: date.value,
-    Salary: salary.value,
-    Position: position.value,
+    Salary: Salary.value,
+    Position: Position.value,
     managerId: selectedEmployeeId,
     isManager: isManager.value
   })
@@ -116,8 +119,8 @@ type Employee = {
   firstName: string
   lastName: string
   birthDate: string
-  salary: number
-  position: string
+  Salary: number
+  Position: string
   managerId: string
   isManager: boolean
   managerName: string
@@ -134,8 +137,8 @@ const fetchData = async () => {
         firstName: data.firstName,
         lastName: data.lastName,
         birthDate: formatTimestamp(data.birthDate || null),
-        salary: data.Salary,
-        position: data.Position,
+        Salary: data.Salary,
+        Position: data.Position,
         managerId: data.managerId,
         isManager: data.isManager,
         managerName: ''
@@ -177,10 +180,10 @@ const onRowEditSave = async (event: { newData: Employee; index: number }) => {
       })
       return
     }
-    if (newData.position === 'CEO' && newData.managerId) {
+    if (newData.Position === 'CEO' || newData.Position === 'ceo' || newData.Position === 'Ceo') {
       toast.add({
         severity: 'error',
-        summary: 'The CEO cannot have a manager',
+        summary: 'The CEO is the owner of this company and cannot be changed',
         detail: 'Otherwise the company hierarchy will be broken',
         group: 'tl',
         life: 3000
@@ -192,8 +195,8 @@ const onRowEditSave = async (event: { newData: Employee; index: number }) => {
       firstName: newData.firstName,
       lastName: newData.lastName,
       birthDate: Timestamp.fromDate(new Date(newData.birthDate)),
-      Salary: newData.salary,
-      Position: newData.position,
+      Salary: newData.Salary,
+      Position: newData.Position,
       isManager: newData.isManager,
       managerId: newData.managerId
     })
@@ -213,18 +216,59 @@ const onRowEditSave = async (event: { newData: Employee; index: number }) => {
 
 const deleteSelected = async () => {
   try {
+    if (!selected.value) return
+    if (
+      selected.value.Position === 'CEO' ||
+      selected.value.Position === 'ceo' ||
+      selected.value.Position === 'Ceo' ||
+      selected.value.Position === 'CEo' ||
+      selected.value.Position === 'CeO' ||
+      selected.value.Position === 'cEo' ||
+      selected.value.Position === 'cEO' ||
+      selected.value.Position === 'ceO'
+    ) {
+      toast.add({
+        severity: 'error',
+        summary: 'The CEO is the owner of this company and cannot be deleted',
+        detail: 'Otherwise the company hierarchy will be broken',
+        group: 'tl',
+        life: 3000
+      })
+      return
+    }
+    const employeesRef: Employee[] = []
+    const q = query(collection(db, 'employees'), where('managerId', '==', selected.value.id))
+    const querySnapshot = await getDocs(q)
+
+    querySnapshot.forEach((doc) => {
+      employeesRef.push({ ...doc.data(), id: doc.id } as Employee)
+    })
+
+    for (const emp of employeesRef) {
+      const employeeRef = doc(db, 'employees', emp.id)
+      await updateDoc(employeeRef, {
+        firstName: emp.firstName,
+        lastName: emp.lastName,
+        birthDate: Timestamp.fromDate(new Date(emp.birthDate)),
+        Salary: emp.Salary,
+        Position: emp.Position,
+        isManager: emp.isManager,
+        managerId: selected.value.managerId
+      })
+    }
+
     await deleteDoc(doc(db, 'employees', selected.value.id))
     await fetchData()
     selected.value = []
-  } catch (error) {
-    console.error('Error deleting employees:', error)
-  } finally {
+
     toast.add({
       severity: 'success',
       summary: 'Employee deleted successfully',
       life: 3000,
       group: 'tl'
     })
+  } catch (error) {
+    console.error('Error deleting employees:', error)
   }
 }
 
@@ -245,7 +289,7 @@ onMounted(() => {
 <template>
   <div class="card">
     <Toast />
-    <Toast position="bottom-right" group="tl" />
+    <Toast Position="bottom-right" group="tl" />
     <DataTable
       v-model:editingRows="editingRows"
       :value="employees"
@@ -307,6 +351,16 @@ onMounted(() => {
                   <DatePicker v-model="date" inputId="birth_date" />
                   <label for="birth_date">Birth Date</label>
                 </FloatLabel>
+              </div>
+              <div class="dialog-columns flex flex-column gap-4">
+                <FloatLabel>
+                  <InputText id="Salary" v-model="Salary" />
+                  <label for="Salary">Salary</label>
+                </FloatLabel>
+                <FloatLabel>
+                  <InputText id="Position" v-model="Position" />
+                  <label for="Position">Position</label>
+                </FloatLabel>
                 <Select
                   v-model="selectedEmployee"
                   :options="employeeOptions"
@@ -314,20 +368,10 @@ onMounted(() => {
                   placeholder="Select a Manager"
                   class="w-full md:w-56"
                 />
-              </div>
-              <div class="dialog-columns flex flex-column gap-4">
-                <FloatLabel>
-                  <InputText id="salary" v-model="salary" />
-                  <label for="salary">Salary</label>
-                </FloatLabel>
-                <FloatLabel>
-                  <InputText id="position" v-model="position" />
-                  <label for="position">Position</label>
-                </FloatLabel>
-                <div class="manager">
+                <!-- <div class="manager">
                   <label for="isManager">Is a Manager</label>
                   <SelectButton v-model="isManager" :options="options" aria-labelledby="basic" />
-                </div>
+                </div> -->
               </div>
             </div>
             <div class="buttons">
@@ -363,12 +407,12 @@ onMounted(() => {
           <InputText v-model="data[field]" />
         </template>
       </Column>
-      <Column field="position" header="Position" style="width: 15%" sortable>
+      <Column field="Position" header="Position" style="width: 15%" sortable>
         <template #editor="{ data, field }">
           <InputText v-model="data[field]" />
         </template>
       </Column>
-      <Column field="salary" header="Salary" style="width: 10%" sortable>
+      <Column field="Salary" header="Salary" style="width: 10%" sortable>
         <template #editor="{ data, field }">
           <InputNumber v-model="data[field]" mode="currency" currency="ZAR" locale="en-US" fluid />
         </template>
@@ -378,11 +422,11 @@ onMounted(() => {
           <DatePicker v-model="data[field]" inputId="birth_date" />
         </template>
       </Column>
-      <Column field="isManager" header="Manager" style="width: 10%" sortable>
+      <!-- <Column field="isManager" header="Manager" style="width: 10%" sortable>
         <template #editor="{ data, field }">
           <SelectButton v-model="data[field]" :options="options" />
         </template>
-      </Column>
+      </Column> -->
       <Column field="managerName" header="Manager" style="width: 10%" sortable>
         <template #editor="{ data }">
           <Select
