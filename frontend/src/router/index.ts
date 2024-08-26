@@ -34,6 +34,10 @@ const routes = [
     path: '/signup',
     component: Signup,
     meta: { guestOnly: true }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 
@@ -45,11 +49,16 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   try {
     const currentUser = await getCurrentUser()
-
-    if (to.meta.requiresAuth && !currentUser) {
+    if (to.matched.some((record) => record.meta.requiresAuth) && !currentUser) {
       next('/login')
-    } else if (to.meta.guestOnly && currentUser) {
+    } else if (to.matched.some((record) => record.meta.guestOnly) && currentUser) {
       next('/')
+    } else if (to.matched.length === 0) {
+      if (currentUser) {
+        next('/')
+      } else {
+        next('/login')
+      }
     } else {
       next()
     }
